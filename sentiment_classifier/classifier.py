@@ -6,6 +6,9 @@ from sklearn import preprocessing
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import cross_val_score
 from sklearn.svm import LinearSVC
+from sklearn.externals import joblib
+import sklearn.metrics
+import cPickle as pickle
 
 class Sentence:
 
@@ -112,8 +115,9 @@ class ToySentimentClassifier(object):
     encoded_features = X_dict_vectorizer.fit_transform(all_collected_feats)
 
     # Scale to increase performances and reduce training time
-    encoded_scaled_features = preprocessing.scale(encoded_features,
-                                                  with_mean=False)
+    scaler = preprocessing.StandardScaler(with_mean=False).fit(encoded_features)
+    encoded_scaled_features = scaler.transform(encoded_features)
+
     # Encoding of labels
     label_encoder = preprocessing.LabelEncoder()
     label_encoder.fit([doc.label for doc in all_docs])
@@ -127,8 +131,39 @@ class ToySentimentClassifier(object):
                                        encoded_labels, scoring='f1_weighted')
     print "Average F1 Weighted: %s" % (reduce(lambda x, y: x + y, cross_val_scores) / len(cross_val_scores),)
 
-  def parse(self):
-    pass
+    clf.fit(encoded_scaled_features, encoded_labels)
+
+    # Save model
+    joblib.dump(clf, 'clf.pkl')
+    joblib.dump(scaler, "scaler.pkl")
+    joblib.dump(label_encoder, "label_encoder.pkl")
+    pickle.dump(X_dict_vectorizer, open("vectorizer.pickle", "wb"))
+
+  def parse(self, model_name, input_file_name):
+    classifier = joblib.load('clf.pkl')
+    scaler = joblib.load("scaler.pkl")
+    label_encoder = joblib.load("label_encoder.pkl")
+    vectorizer = joblib.load("vectorizer.pickle", "wb")
+    reader = InputReader(input_file_name)
+    all_docs = []
+    original_labels = []
+    predicted_labels = []
+    for doc in reader.generate_documents():
+      doc.features = self.extract_features(doc)
+      all_docs.append(doc)
+
+      # Encoding of samples
+      encoded_features = vectorizer.transform(doc.features)
+      encoded_scaled_features = scaler.transform(encoded_features)
+      predictions = classifier.predict(encoded_scaled_features)
+      labeled_prediction = label_encoder.inverse_transform(predictions)[0]
+      original_labels.append(doc.label)
+      predicted_labels.append(labeled_prediction)
+
+    print sklearn.metrics.confusion_matrix(original_labels,
+                                           predicted_labels)
+    print sklearn.metrics.classification_report(original_labels,
+                                                predicted_labels)
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Sentiment Classifier')
@@ -142,4 +177,7 @@ if __name__ == "__main__":
   model_name = args.model_name
   train_mode = args.train
   classifier = ToySentimentClassifier()
-  classifier.train(model_name, input_file)
+  if train_mode:
+    classifier.train(model_name, input_file)
+  else:
+    classifier.parse(model_name, input_file)
