@@ -34,3 +34,6 @@ class FeatureExtractor(object):
       val = math.log(char_counter[x]+1)/float_len_word
       feats[x] = val
     return feats
+
+  def compute_document_length(self, document):
+    return {'DOC_LENGTH': len(document.get_tokens())}

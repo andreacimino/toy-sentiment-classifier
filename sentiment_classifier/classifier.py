@@ -93,13 +93,13 @@ class ToySentimentClassifier(object):
 
   def extract_features(self, doc):
     all_features = {}
-    for i in range(1, 5):
+    for i in range(1, 3):
       all_features.update(self.feature_extractor.extract_word_ngrams(doc, i))
-    for i in range(1, 5):
+    for i in range(1, 3):
       all_features.update(self.feature_extractor.extract_lemma_ngrams(doc, i))
-    for i in range(1, 5):
+    for i in range(1, 3):
       all_features.update(self.feature_extractor.compute_n_chars(doc, i))
-
+    all_features.update(self.feature_extractor.compute_document_length(doc))
     return all_features
 
   def train(self, model_name, input_file_name):
