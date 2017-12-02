@@ -9,6 +9,9 @@ from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 import sklearn.metrics
 import cPickle as pickle
+from evaluator import evaluate
+import csv
+
 
 class Sentence:
 
@@ -139,6 +142,41 @@ class ToySentimentClassifier(object):
     joblib.dump(label_encoder, "label_encoder.pkl")
     pickle.dump(X_dict_vectorizer, open("vectorizer.pickle", "wb"))
 
+  def evaluate_sentipolc(self, docs):
+    def clz_to_opos_oneg(clz):
+      if clz == "POS":
+        opos = 1
+        oneg = 0
+      if clz == "NEG":
+        opos = 0
+        oneg = 1
+      if clz == "O":
+        opos = 0
+        oneg = 0
+      if clz == "POS_NEG":
+        opos = 1
+        oneg = 1
+      return (opos, oneg)
+
+    predicted_csv_file = open("predicted.csv", 'w')
+    field_names = ["id", "sub", "opos", "oneg", "iro", "lpos", "lneg", "top"]
+    writer = csv.DictWriter(predicted_csv_file, fieldnames=field_names)
+    for doc in docs:
+      opos, oneg = clz_to_opos_oneg(doc.labeled_prediction)
+      writer.writerow({'id': doc.id, 'opos': opos, 'oneg': oneg})
+    predicted_csv_file.close()
+
+    # Generate gold file
+    gold_csv_file = open("gold.csv", 'w')
+    writer = csv.DictWriter(gold_csv_file, fieldnames=field_names)
+    for doc in docs:
+      opos, oneg = clz_to_opos_oneg(doc.label)
+      writer.writerow({'id': doc.id, 'opos': opos, 'oneg': oneg})
+    gold_csv_file.close()
+
+    # Evaluation
+    evaluate("gold.csv", "predicted.csv")
+
   def parse(self, model_name, input_file_name):
     classifier = joblib.load('clf.pkl')
     scaler = joblib.load("scaler.pkl")
@@ -159,11 +197,14 @@ class ToySentimentClassifier(object):
       labeled_prediction = label_encoder.inverse_transform(predictions)[0]
       original_labels.append(doc.label)
       predicted_labels.append(labeled_prediction)
+      doc.labeled_prediction = labeled_prediction
 
-    print sklearn.metrics.confusion_matrix(original_labels,
-                                           predicted_labels)
+    # print sklearn.metrics.confusion_matrix(original_labels,
+    #                                        predicted_labels)
     print sklearn.metrics.classification_report(original_labels,
                                                 predicted_labels)
+    self.evaluate_sentipolc(all_docs)
+
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Sentiment Classifier')
