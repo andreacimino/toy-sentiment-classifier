@@ -15,3 +15,8 @@ through this command:
 
 pip install -r requirements
 
+
+Training and Test datasets for sentipolc 2016 tasks available at the following url:
+
+https://notebooks.azure.com/andreacimino/libraries/sentipolc-dataset
+
