@@ -20,3 +20,10 @@ Training and Test datasets for sentipolc 2016 tasks available at the following u
 
 https://notebooks.azure.com/andreacimino/libraries/sentipolc-dataset
 
+Run training with:
+
+python classifier.py -t -i training.parsed -m model
+
+Run test with:
+
+python classifier.py  -i test.parsed -m model

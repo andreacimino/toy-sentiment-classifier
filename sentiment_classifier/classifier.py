@@ -198,9 +198,6 @@ class ToySentimentClassifier(object):
       original_labels.append(doc.label)
       predicted_labels.append(labeled_prediction)
       doc.labeled_prediction = labeled_prediction
-
-    # print sklearn.metrics.confusion_matrix(original_labels,
-    #                                        predicted_labels)
     print sklearn.metrics.classification_report(original_labels,
                                                 predicted_labels)
     self.evaluate_sentipolc(all_docs)
