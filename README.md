@@ -27,3 +27,7 @@ python classifier.py -t -i training.parsed -m model
 Run test with:
 
 python classifier.py  -i test.parsed -m model
+
+
+Link to the Sentipolc 2016 Report:
+http://ceur-ws.org/Vol-1749/paper_026.pdf
