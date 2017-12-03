@@ -8,10 +8,10 @@ from sklearn.model_selection import cross_val_score
 from sklearn.svm import LinearSVC
 from sklearn.externals import joblib
 import sklearn.metrics
-import cPickle as pickle
 from evaluator import evaluate
 import csv
-
+import tarfile
+import os
 
 class Sentence:
 
@@ -140,7 +140,12 @@ class ToySentimentClassifier(object):
     joblib.dump(clf, 'clf.pkl')
     joblib.dump(scaler, "scaler.pkl")
     joblib.dump(label_encoder, "label_encoder.pkl")
-    pickle.dump(X_dict_vectorizer, open("vectorizer.pickle", "wb"))
+    joblib.dump(X_dict_vectorizer, open("vectorizer.pkl", "wb"))
+    tar = tarfile.open("%s" % model_name, "w")
+    for fname in ['clf.pkl', "scaler.pkl", "label_encoder.pkl", "vectorizer.pkl"]:
+      tar.add(fname)
+      os.remove(fname)
+    tar.close()
 
   def evaluate_sentipolc(self, docs):
     def clz_to_opos_oneg(clz):
@@ -177,11 +182,20 @@ class ToySentimentClassifier(object):
     # Evaluation
     evaluate("gold.csv", "predicted.csv")
 
-  def parse(self, model_name, input_file_name):
-    classifier = joblib.load('clf.pkl')
-    scaler = joblib.load("scaler.pkl")
-    label_encoder = joblib.load("label_encoder.pkl")
-    vectorizer = joblib.load("vectorizer.pickle", "wb")
+  def load_model(self, model_name):
+    tar = tarfile.open("%s" % model_name, 'r')
+    for tarinfo in tar:
+      f = tar.extractfile(tarinfo)
+      if tarinfo.name == "clf.pkl":
+        self.classifier = joblib.load(f)
+      if tarinfo.name == "scaler.pkl":
+        self.scaler = joblib.load(f)
+      if tarinfo.name == "label_encoder.pkl":
+        self.label_encoder = joblib.load(f)
+      if tarinfo.name == "vectorizer.pkl":
+        self.vectorizer = joblib.load(f)
+
+  def parse(self, input_file_name):
     reader = InputReader(input_file_name)
     all_docs = []
     original_labels = []
@@ -191,10 +205,10 @@ class ToySentimentClassifier(object):
       all_docs.append(doc)
 
       # Encoding of samples
-      encoded_features = vectorizer.transform(doc.features)
-      encoded_scaled_features = scaler.transform(encoded_features)
-      predictions = classifier.predict(encoded_scaled_features)
-      labeled_prediction = label_encoder.inverse_transform(predictions)[0]
+      encoded_features = self.vectorizer.transform(doc.features)
+      encoded_scaled_features = self.scaler.transform(encoded_features)
+      predictions = self.classifier.predict(encoded_scaled_features)
+      labeled_prediction = self.label_encoder.inverse_transform(predictions)[0]
       original_labels.append(doc.label)
       predicted_labels.append(labeled_prediction)
       doc.labeled_prediction = labeled_prediction
@@ -205,10 +219,10 @@ class ToySentimentClassifier(object):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Sentiment Classifier')
-  parser.add_argument('-i','--input_file', help='The input file in CONLL Format', required=True)
-  parser.add_argument('-m','--model_name', help='The model name', required=True)
-  parser.add_argument('-o','--output_file', help='The output file')
-  parser.add_argument('-t','--train', help='Trains the model', action='store_true')
+  parser.add_argument('-i', '--input_file', help='The input file in CONLL Format', required=True)
+  parser.add_argument('-m', '--model_name', help='The model name', required=True)
+  parser.add_argument('-o', '--output_file', help='The output file')
+  parser.add_argument('-t', '--train', help='Trains the model', action='store_true')
   args = parser.parse_args()
   input_file = args.input_file
   output_file = args.output_file
@@ -218,4 +232,5 @@ if __name__ == "__main__":
   if train_mode:
     classifier.train(model_name, input_file)
   else:
-    classifier.parse(model_name, input_file)
+    classifier.load_model(model_name)
+    classifier.parse(input_file)
