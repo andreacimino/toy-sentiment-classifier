@@ -23,11 +23,6 @@ through this command:
 pip install -r requirements
 ```
 
-
-Training and test datasets for Sentipolc 2016 tasks available at the following url:
-
-https://notebooks.azure.com/andreacimino/libraries/sentipolc-dataset
-
 Run training with:
 
 
