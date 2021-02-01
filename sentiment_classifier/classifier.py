@@ -6,12 +6,13 @@ from sklearn import preprocessing
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.model_selection import cross_val_score
 from sklearn.svm import LinearSVC
-from sklearn.externals import joblib
+import joblib
 import sklearn.metrics
 from evaluator import evaluate
 import csv
 import tarfile
 import os
+from functools import reduce
 
 class Sentence:
 
@@ -81,7 +82,8 @@ class InputReader(object):
       elif "</doc>" in l:
         yield current_document
       elif l == '':
-        raise StopIteration
+        return 
+        #raise StopIteration
       else:
         split_token = l.rstrip('\n').split("\t")
         tok = Token(split_token[1], split_token[2],
@@ -132,7 +134,7 @@ class ToySentimentClassifier(object):
     # Cross validation
     cross_val_scores = cross_val_score(clf, encoded_scaled_features,
                                        encoded_labels, scoring='f1_weighted')
-    print "Average F1 Weighted: %s" % (reduce(lambda x, y: x + y, cross_val_scores) / len(cross_val_scores),)
+    print("Average F1 Weighted: %s" % (reduce(lambda x, y: x + y, cross_val_scores) / len(cross_val_scores),))
 
     clf.fit(encoded_scaled_features, encoded_labels)
 
@@ -212,8 +214,8 @@ class ToySentimentClassifier(object):
       original_labels.append(doc.label)
       predicted_labels.append(labeled_prediction)
       doc.labeled_prediction = labeled_prediction
-    print sklearn.metrics.classification_report(original_labels,
-                                                predicted_labels)
+    print(sklearn.metrics.classification_report(original_labels,
+                                                predicted_labels))
     self.evaluate_sentipolc(all_docs)
 
 

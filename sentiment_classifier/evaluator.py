@@ -41,8 +41,8 @@ def evaluate(gold_file, result_file):
   # evaluation: single classes
   for task in ['sub', 'opos', 'oneg', 'iro', 'lpos', 'lneg']:
       # table header
-      print "\ntask: {}".format(task)
-      print "prec. 0\trec. 0\tF-sc. 0\tprec. 1\trec. 1\tF-sc. 1\tF-sc."
+      print( "\ntask: {}".format(task))
+      print( "prec. 0\trec. 0\tF-sc. 0\tprec. 1\trec. 1\tF-sc. 1\tF-sc.")
       correct =  {'0':0,'1':0}
       assigned = {'0':0,'1':0}
       precision ={'0':0.0,'1':0.0}
@@ -50,15 +50,15 @@ def evaluate(gold_file, result_file):
       fscore =   {'0':0.0,'1':0.0}
 
       # count the labels
-      for id, gold_labels in gold.iteritems():
+      for id, gold_labels in gold.items():
           #import pdb; pdb.set_trace()
           if not id in exclude: #ignore not unavailable tweets
-           #   print "NOT EXCLUDE"
-  #            print id in result
+           #   print( "NOT EXCLUDE"
+  #            print( id in result
               if (not id in result) or result[id][task]=='':
                   pass
               else:
-            #      print "ASSIGNING"
+            #      print( "ASSIGNING"
                   assigned[result[id][task]] += 1
                   if gold_labels[task]==result[id][task]:
                       correct[result[id][task]] += 1
@@ -73,15 +73,15 @@ def evaluate(gold_file, result_file):
               fscore[label] = 0.0
 
       # write down the table
-      print "{0:.4f}\t{1:.4f}\t{2:.4f}\t{3:.4f}\t{4:.4f}\t{5:.4f}\t{6:.4f}".format(
+      print( "{0:.4f}\t{1:.4f}\t{2:.4f}\t{3:.4f}\t{4:.4f}\t{5:.4f}\t{6:.4f}".format(
               precision['0'], recall['0'], fscore['0'],
               precision['1'], recall['1'], fscore['1'],
-              (fscore['0'] + fscore['1'])/2.0)
+              (fscore['0'] + fscore['1'])/2.0))
 
 
   # polarity evaluation needs a further step
-  print "\ntask: polarity"
-  print "Combined F-score"
+  print( "\ntask: polarity")
+  print( "Combined F-score")
   correct =  {'opos':{'0':0,'1':0}, 'oneg':{'0':0,'1':0}}
   assigned = {'opos':{'0':0,'1':0}, 'oneg':{'0':0,'1':0}}
   precision ={'opos':{'0':0.0,'1':0.0}, 'oneg':{'0':0.0,'1':0.0}}
@@ -89,7 +89,7 @@ def evaluate(gold_file, result_file):
   fscore =   {'opos':{'0':0.0,'1':0.0}, 'oneg':{'0':0.0,'1':0.0}}
 
   # count the labels
-  for id, gold_labels in gold.iteritems():
+  for id, gold_labels in gold.items():
       if not id in exclude: #ignore not unavailable tweets
           for cl in ['opos','oneg']:
               if (not id in result) or result[id][cl]=='':
@@ -113,13 +113,13 @@ def evaluate(gold_file, result_file):
   fscore_oneg = (fscore['oneg']['0'] + fscore['oneg']['1'] ) / 2.0
 
   # write down the table
-  print "{0:.4f}".format((fscore_opos + fscore_oneg)/2.0)
+  print( "{0:.4f}".format((fscore_opos + fscore_oneg)/2.0))
 
 
 
   # polarity evaluation needs a further step
-  print "\ntask: lpolarity"
-  print "Combined F-score"
+  print( "\ntask: lpolarity")
+  print( "Combined F-score")
   correct =  {'lpos':{'0':0,'1':0}, 'lneg':{'0':0,'1':0}}
   assigned = {'lpos':{'0':0,'1':0}, 'lneg':{'0':0,'1':0}}
   precision ={'lpos':{'0':0.0,'1':0.0}, 'lneg':{'0':0.0,'1':0.0}}
@@ -127,7 +127,7 @@ def evaluate(gold_file, result_file):
   fscore =   {'lpos':{'0':0.0,'1':0.0}, 'lneg':{'0':0.0,'1':0.0}}
 
   # count the labels
-  for id, gold_labels in gold.iteritems():
+  for id, gold_labels in gold.items():
       if not id in exclude: #ignore not unavailable tweets
           for cl in ['lpos','lneg']:
               if (not id in result) or result[id][cl]=='':
@@ -151,4 +151,4 @@ def evaluate(gold_file, result_file):
   fscore_lneg = (fscore['lneg']['0'] + fscore['lneg']['1'] ) / 2.0
 
   # write down the table
-  print "{0:.4f}".format((fscore_lpos + fscore_lneg)/2.0)
+  print( "{0:.4f}".format((fscore_lpos + fscore_lneg)/2.0))
